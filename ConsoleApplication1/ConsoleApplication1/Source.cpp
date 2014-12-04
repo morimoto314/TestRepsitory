@@ -56,42 +56,10 @@ using namespace cv;
 // 画像表示
 int main(int argc, char* argv[])
 {
-	initModule_nonfree();
-	char imgName1[100] = "C:\\datebase\\airplanes\\image_001.jpg";
-	Mat img = imread(imgName1);
+	
 
-	cv::Mat gray_img;
-	cv::cvtColor(img, gray_img, CV_BGR2GRAY);
-	cv::normalize(gray_img, gray_img, 0, 255, cv::NORM_MINMAX);
-
-	std::vector<cv::KeyPoint> keypoints;
-	std::vector<cv::KeyPoint>::iterator itk;
-	cv::Mat descriptors;
-	ofstream ofs1("text_surf.txt");
-	// SURF 検出器に基づく特徴点検出
-	// hessianThreshold=4500, 
-	cv::SurfFeatureDetector detector(4500);
 	cv::Scalar color(100, 255, 50);
-	detector.detect(gray_img, keypoints);
-	// SURF に基づくディスクリプタ抽出器
-	cv::SurfDescriptorExtractor extractor;
-	extractor.compute(gray_img, keypoints, descriptors);
-	for (itk = keypoints.begin(); itk != keypoints.end(); ++itk) {
-		cv::circle(img, itk->pt, 1, color, -1);
-		cv::circle(img, itk->pt, itk->size, color, 1, CV_AA);
-		if (itk->angle >= 0) {
-			cv::Point pt2(itk->pt.x + cos(itk->angle)*itk->size, itk->pt.y + sin(itk->angle)*itk->size);
-			cv::line(img, itk->pt, pt2, color, 1, CV_AA);
-		}
-	}
-	// 64次元の特徴量 x keypoint数
-	for (int i = 0; i<descriptors.rows; ++i) {
-		cv::Mat d(descriptors, cv::Rect(0, i, descriptors.cols, 1));
-		ofs1 << i << ": " << d << std::endl;
-	}
-
-	cv::namedWindow("SIFT Features", CV_WINDOW_AUTOSIZE | CV_WINDOW_FREERATIO);
-	cv::imshow("SIFT Features", img);
+	
 
 
 	for (int i = 0; i < 7; i++)
@@ -183,6 +151,7 @@ int main(int argc, char* argv[])
 		std::vector<cv::KeyPoint>::iterator itk2;
 		cv::Mat descriptors2;
 		ofstream ofs2("text_surf_r.txt");
+		ofstream ofs3("test.txt");
 		// SURF 検出器に基づく特徴点検出
 		// hessianThreshold=4500, 
 		cv::SurfFeatureDetector detector2(4500);
@@ -199,30 +168,23 @@ int main(int argc, char* argv[])
 				cv::line(img2, itk2->pt, pt2, color, 1, CV_AA);
 			}
 		}
-		cout << descriptors2 << endl;
 
+		cout << descriptors2.size()<<endl;
+		
 		cv::namedWindow("SURF Features2", CV_WINDOW_AUTOSIZE | CV_WINDOW_FREERATIO);
 		cv::imshow("SURF Features2", img2);
-
-		//マッチング
-		cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create("BruteForce");
-		std::vector<cv::DMatch> dmatch;
-		//マッチングdmatchに動的配列としてはいっている。
-		matcher->match(descriptors, descriptors2, dmatch);
-		cv::Mat out;
-		//outに画像が結合されて線が入っている。
-		cv::drawMatches(img, keypoints, img2, keypoints2, dmatch, out);
-		namedWindow("matching", CV_WINDOW_AUTOSIZE | CV_WINDOW_FREERATIO);
-		cv::imshow("matching", out);
-		cv::waitKey(0);
-
-		vector<DMatch>::iterator itka;
-		float s_distance = 0;
-		for (itka = dmatch.begin(); itka != dmatch.end(); itka++)
+		
+		Mat_<float>::const_iterator cit = descriptors2.begin<float>();
+		for (; cit != descriptors2.end<float>(); ++cit)
 		{
-			s_distance = itka->distance;
+			ofs3 << *cit << ",";
 		}
-		cout << s_distance << endl;
+		for (int i = 0; i<descriptors2.rows; ++i) 
+		{
+			cv::Mat d(descriptors2, cv::Rect(0, i, descriptors2.cols, 1));
+			ofs2 << d << std::endl;
+		}
+
 	}
 
 
